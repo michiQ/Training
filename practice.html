@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Strategy Collection practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,800;1,6..12,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#054950; --teal-deep:#03353B; --orange:#C84F09; --orange-soft:#F6DCCB;
+  --bg:#FFFFFF; --card:#F6F8F8; --ink:#132426; --ink-2:#4A5C5E; --line:#D6DEDD;
+  --good:#1F7A4D; --good-bg:#E3F2EA; --bad:#A2341B; --bad-bg:#F8E4DF;
+  --quote-bg:var(--teal); --quote-ink:#FFFFFF;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.wrap{max-width:640px;margin:0 auto;padding:20px 20px 120px}
+
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:22px}
+header h1{font-size:17px;font-weight:800;margin:0;color:var(--teal);letter-spacing:-0.01em}
+.streak{font-size:14px;color:var(--ink-2)}
+.streak b{color:var(--orange);font-weight:800}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));z-index:5}
+nav.tabs button{flex:1;max-width:200px;background:none;border:0;padding:10px 6px;border-radius:10px;font-size:14px;font-weight:600;color:var(--ink-2)}
+nav.tabs button[aria-selected="true"]{color:var(--teal);background:var(--bg)}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.back{background:none;border:0;color:var(--teal);font-weight:700;padding:4px 0;font-size:15px}
+.back[disabled]{color:var(--line);cursor:default}
+.count{font-size:14px;color:var(--ink-2)}
+.dots{display:flex;gap:8px;margin-bottom:18px}
+.dots span{width:34px;height:5px;border-radius:3px;background:var(--line)}
+.dots span.on{background:var(--orange)}
+.dots span.done{background:var(--teal)}
+
+.kind{font-size:14px;color:var(--ink-2);margin:0 0 10px}
+.cue{background:var(--quote-bg);color:var(--quote-ink);border-radius:18px;padding:30px 28px 28px;position:relative;margin-bottom:18px}
+.cue::before{content:"\201C";position:absolute;top:6px;left:18px;font-size:72px;line-height:1;color:var(--orange);font-weight:800;opacity:.95}
+.cue .who{font-size:14px;opacity:.78;margin:0 0 10px;padding-left:28px}
+.cue p.q{font-size:clamp(21px,3.2vw,26px);line-height:1.3;font-weight:600;margin:0;padding-left:28px;letter-spacing:-0.01em}
+.cue.term{padding-top:28px}
+.cue.term::before{content:none}
+.cue.term .who,.cue.term p.q{padding-left:0}
+.cue.term p.q{font-size:clamp(24px,3.6vw,30px);font-weight:800}
+
+.ask{font-weight:600;margin:0 0 12px}
+.opts{display:grid;gap:10px;margin-bottom:16px}
+.opt{text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;line-height:1.4;transition:border-color .15s}
+.opt:hover{border-color:var(--teal)}
+.opt[disabled]{cursor:default}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.dim{opacity:.55}
+.opt .note{display:block;font-size:14px;color:var(--ink-2);margin-top:6px}
+.opt.right .note{color:var(--good)}
+.opt.wrong .note{color:var(--bad)}
+
+.reveal{background:var(--card);border-radius:14px;padding:18px 20px;border-left:5px solid var(--orange);margin-bottom:16px}
+.reveal h3{font-size:14px;font-weight:600;color:var(--ink-2);margin:0 0 4px}
+.reveal p{margin:0 0 14px}
+.reveal p:last-child{margin-bottom:0}
+.reveal .say{font-size:19px;font-weight:600;line-height:1.4;color:var(--teal)}
+.reveal .play{display:inline-block;background:var(--orange-soft);color:var(--ink);border-radius:8px;padding:3px 9px;font-size:14px;font-weight:600;margin-bottom:12px}
+
+.verdict{font-weight:800;margin:0 0 10px}
+.verdict.good{color:var(--good)}.verdict.bad{color:var(--bad)}
+
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{background:var(--teal);color:#fff;border:0;border-radius:12px;padding:13px 20px;font-weight:700;font-size:16px}
+.btn.alt{background:var(--card);color:var(--ink);border:1.5px solid var(--line)}
+.btn.orange{background:var(--orange)}
+
+.finish h2{font-size:26px;font-weight:800;margin:0 0 6px;letter-spacing:-0.01em}
+.finish p{color:var(--ink-2);margin:0 0 20px}
+.finish ul{padding-left:20px;margin:0 0 24px}
+
+.sheet h2,.browse h2{font-size:24px;font-weight:800;letter-spacing:-0.01em;margin:0 0 6px}
+.sheet .lead,.browse .lead{color:var(--ink-2);margin:0 0 22px}
+.block{background:var(--card);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.block h3{font-size:16px;font-weight:800;margin:0 0 10px;color:var(--teal)}
+.block p{margin:0 0 10px}.block p:last-child{margin:0}
+.block ul{margin:0;padding-left:20px}.block li{margin-bottom:6px}
+.pitch{font-size:17px;line-height:1.5}
+.uc{display:grid;grid-template-columns:1fr;gap:12px}
+.uc div{border-top:1px solid var(--line);padding-top:10px}
+.uc div:first-child{border-top:0;padding-top:0}
+.uc .h{font-style:italic;color:var(--ink-2);margin:0 0 4px}
+.uc .l{margin:0}
+.uc .l b{font-weight:800}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+.two h4{margin:0 0 6px;font-size:15px}
+.two .do h4{color:var(--good)}.two .dont h4{color:var(--bad)}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--teal);color:#fff;border-color:var(--teal)}
+.item{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.item summary{cursor:pointer;font-weight:600;list-style:none}
+.item summary::-webkit-details-marker{display:none}
+.item summary::after{content:"+";float:right;color:var(--ink-2);font-weight:800}
+.item[open] summary::after{content:"\2013"}
+.item .body{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.item .body p{margin:0 0 8px}
+.item .body .say{color:var(--teal);font-weight:600}
+.small{font-size:14px;color:var(--ink-2)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Strategy Collection practice</h1>
+    <div class="streak" id="streak"></div>
+  </header>
+  <main id="view"></main>
+</div>
+<nav class="tabs" aria-label="Sections">
+  <button data-tab="today" aria-selected="true">Today</button>
+  <button data-tab="browse">Browse</button>
+  <button data-tab="sheet">Cheat sheet</button>
+</nav>
+
+<script>
+/* ---------- Content, drawn from the Atlassian partner materials ---------- */
+const UC = {
+  1:"Discovery to strategy alignment",
+  2:"Portfolio prioritization",
+  3:"Executive reporting",
+  4:"Continuous planning",
+  5:"Product ROI",
+  T:"Talent: workforce planning",
+  G:"Green light: Jira Align felt too heavy",
+  J:"Jira Product Discovery",
+  F:"Focus"
+};
+
+// Hear this, say this: pick the use case, then learn the words.
+const ROUTE = [
+ {id:"r1", who:"CPO, in a first call", q:"Our product teams are building constantly, but leadership has no idea whether any of it ladders up to our top company goals.",
+  opts:[1,3,2,"T"], ans:1, lead:"Lead with Focus, connect to JPD",
+  say:"A JPD idea connects to a Goal, and the Goal rolls up to a Focus Area, so leadership sees what's being built and why without anyone pulling data. The link to the Jira epic then shows whether delivery is building it.",
+  why:"Product work is living in a silo. The native link between JPD and Focus Areas is the one thing no competitor does without middleware."},
+ {id:"r2", who:"VP Product", q:"We have 40 ideas in JPD and 12 active initiatives. Every team thinks their work is the priority, so we decide in meetings instead of with data.",
+  opts:[2,1,4,"T"], ans:1, lead:"Lead with JPD, connected to Focus",
+  say:"Your team can score ideas in JPD against the Focus Areas leadership has already committed to. Once discovery is aligned to strategy, prioritization becomes data-driven instead of political.",
+  why:"The ideas aren't connected to what leadership committed to, so every team argues from its own context. Scoring in a vacuum optimizes locally; Strategy Collection supplies the enterprise context that makes JPD prioritization defensible."},
+ {id:"r3", who:"Chief of Staff", q:"Every time our CPO presents to the exec team, she spends two days building a slide deck. The data is stale by the time she presents it.",
+  opts:[3,5,1,2], ans:3, lead:"Lead with Focus",
+  say:"Focus Area updates surface automatically from Jira execution, including work that started in JPD. The deck stops being a two-day project, and leadership stops deciding on last month's data.",
+  why:"Executive reporting is the unifying play. It lands with the Org Leader and the Business Leader at the same time, which is why it keeps a deal from splitting."},
+ {id:"r4", who:"Head of Strategy", q:"We do quarterly business reviews, but product is never really in the room. By the time priorities shift, the roadmap is already locked for the quarter.",
+  opts:[4,3,1,"G"], ans:1, lead:"Lead with Focus, connect to JPD",
+  say:"When JPD ideas connect to the Goals under your Focus Areas, product is in the strategy conversation by design. A change in priority shows up in the product view immediately, so you see what to resequence now, not after the next planning cycle.",
+  why:"Product being out of the room is an alignment gap: discovery isn't connected to strategy, so it can only react late. Connect the two and the continuous-planning benefit follows. This is also the strongest wedge against Jira Align for customers running OKRs or QBRs."},
+ {id:"r5", who:"COO", q:"We invest millions in product development every year. Our CFO keeps asking what we got for it. We can tell her what we shipped, but not what it was worth.",
+  opts:[5,3,2,4], ans:5, lead:"Lead with Focus; complete the chain with JPD and Talent",
+  say:"Trace a JPD idea from customer insight to Jira delivery to Focus Area performance. Show your CFO not just what shipped, but what it was worth against company strategy.",
+  why:"Output is visible, outcomes aren't. This is the highest-value conversation in the play. Treat the Funds (labor and other cost) piece as aspirational until it's generally available."},
+ {id:"r6", who:"VP PMO", q:"We looked at Jira Align. Honestly, it felt like too much for us.",
+  opts:["F",2,4,"J"], ans:"F", lead:"Lead with Focus, then Talent and JPD",
+  say:"Focus gives you the strategy layer without the transformation program: leadership sets Focus Areas and OKRs, and the connection to product and delivery is live. Add Talent for who's on it and JPD for discovery, and you have the strategy-to-product connection for every leader, not just engineering.",
+  why:"Jira Align solves enterprise-scale planning and needs an Agile-at-scale operating model first. 'It felt like too much' is the green light: lead with Focus, which is strategy planning for every leader, and build out from there."},
+ {id:"r7", who:"CTO", q:"We run OKRs, but product isn't really part of the process. They find out about strategy changes after the fact.",
+  opts:[4,1,5,"T"], ans:1, lead:"Lead with Focus, connect to JPD",
+  say:"Focus connects your OKR cycle to the product layer, so product discovery is aligned to strategy from the start instead of hearing about changes weeks later.",
+  why:"Product is disconnected from the strategy layer; that's the alignment gap. Once discovery is tied to the OKRs, the continuous-planning benefit follows on its own."},
+ {id:"r8", who:"CEO of a tech company", q:"I can't tell whether the right people are on our most important priorities. Our workforce plan is a spreadsheet nobody trusts.",
+  opts:["T",2,5,1], ans:"T", lead:"Lead with Talent, anchored in Focus Areas",
+  say:"Talent maps your knowledge-worker positions to the Focus Areas you set in Focus. You see headcount allocation against strategic priorities and adjust it in the planning cycle instead of in a spreadsheet.",
+  why:"Workforce planning for knowledge workers is messy because people pivot fast. Talent is the piece most planning approaches leave in a spreadsheet."},
+ {id:"r9", who:"Head of Operations", q:"When two teams fight over the same engineers, it gets escalated to leadership. Whoever shouts loudest wins.",
+  opts:["T",2,4,3], ans:"T", lead:"Lead with Talent, anchored in Focus Areas",
+  say:"Talent shows which positions are allocated to which Focus Areas, so when two initiatives are competing for the same engineers you can see the real trade-off in headcount and cost, and decide it in the planning cycle instead of in an escalation.",
+  why:"Two teams fighting over the same engineers is a capacity problem, not a scoring problem. Talent makes the people behind each priority visible, and that is what turns the loudest argument into a decision leadership can defend."},
+ {id:"r11", who:"VP Product, after an internal survey", q:"Three quarters of our teams keep the roadmap in a deck, half need at least half a day to update it, and most of us pick what's next without any scoring model.",
+  opts:["J",1,3,"T"], ans:"J", lead:"Lead with JPD, then connect to Focus",
+  say:"JPD gives every team one place for intake, a scoring model for what comes next, and a roadmap that updates from the work itself. Then we connect it to Focus so leadership sees which of those bets are funding the priorities they committed to.",
+  why:"These are real numbers from a Praecipio client now running a JPD proof of concept. The loudest pain is at the product level, so JPD leads; the strategy connection is the second conversation."},
+ {id:"r10", who:"CIO", q:"Our strategy lives in slides, our work lives in Jira, and nothing connects them. We produce a lot of reports and still can't connect the dots.",
+  opts:[1,3,"T",5], ans:1, lead:"Lead with Focus as the strategic layer",
+  say:"Right now the only thing connecting your strategy to your work is a person building a deck. Focus puts the strategy layer on the platform your teams already deliver in, so the connection is automatic and the view is live.",
+  why:"Strategy in slides and work in Jira is the most common starting point. Name the gap, then show that the connection is native on the platform they already use."}
+];
+
+// Pick the best reply.
+const RESPOND = [
+ {id:"s1", who:"CTO", q:"How would I even know that what my product team is building is aligned to company strategy?",
+  opts:[
+   {t:"Focus Areas roll up OKRs and CAPEX/OPEX views, and JPD has a weighted scoring matrix that feeds them.", n:"Feature pitch. The CTO doesn't care about the prioritization matrix yet. Lead with the accountability gap."},
+   {t:"Today, when leadership asks whether product is funding company priorities, how long does it take you to answer?", n:"Surfaces the manual data pull. That's the pain; the product comes after."},
+   {t:"Jira Align would give you full portfolio visibility across all your release trains.", n:"Jira Align isn't part of the mid-market play and tends to derail the conversation."}
+  ], ans:1},
+ {id:"s2", who:"Program Lead", q:"Honestly, I spend most of the last week of every quarter pulling data for the exec deck.",
+  opts:[
+   {t:"Roughly how many hours is that across your team, each quarter?", n:"Quantify the pain before anything else. Hours on reporting is the strongest anchor in the business case."},
+   {t:"Strategy Collection is $129 per user per month, and most teams your size start around 80 seats.", n:"Pricing before quantified pain, and before aligning with the partner manager, weakens the deal."},
+   {t:"We can bundle Focus and JPD together for you.", n:"It is not a bundle. Two separately licensed products positioned together because they solve one problem."}
+  ], ans:0},
+ {id:"s3", who:"VP Product", q:"We're evaluating JPD on our side. The strategy team is looking at something separate for OKRs.",
+  opts:[
+   {t:"Let's get JPD closed first and circle back on the OKR tool later.", n:"Deal-splitting. The customer loses the native platform advantage, and you lose the joint business case."},
+   {t:"Who owns the strategy tooling decision? It's worth getting them in the room, because when JPD, Jira and Focus are connected, your executives get real-time information from discovery and delivery rolled up to strategy. That saves hours, if not days, of manual reporting every cycle.", n:"Executive reporting is the bridge that brings both buying tracks together before they diverge."},
+   {t:"The OKR tool doesn't matter much. JPD is the main thing.", n:"Dismisses the strategy track. The whole value is in the connection between the two."}
+  ], ans:1},
+ {id:"s4", who:"CFO", q:"Why would I pay for a strategy tool? We already do this in spreadsheets.",
+  opts:[
+   {t:"Spreadsheets are free until someone asks what your engineering investment delivered against strategy last quarter. How long would that take to answer today?", n:"The status quo is the most common competitor. Make its cost visible in the CFO's own terms."},
+   {t:"Spreadsheets can't integrate with the Teamwork Graph in real time.", n:"Technology theater. Translate to business impact when you're talking to an executive."},
+   {t:"Most large companies have moved off spreadsheets for this already.", n:"Unsupported, and it doesn't engage the CFO's actual question."}
+  ], ans:0},
+ {id:"s5", who:"Head of Strategy", q:"We looked at Jira Align. It was going to require a SAFe rollout we're not ready for.",
+  opts:[
+   {t:"Jira Align really is the complete solution. We could phase the SAFe rollout.", n:"Leads with Align. Don't; it's outside this play and it ignores what they just told you."},
+   {t:"That's actually a strong signal for this. Focus and JPD give you portfolio prioritization grounded in strategy without the transformation program, and they include your business leaders, not just engineering.", n:"Treats the objection as the green light it is, and names the differentiator."},
+   {t:"Focus is basically Jira Align lite.", n:"Undersells it. Focus is strategy planning for every leader; Align is enterprise work planning for engineering at scale."}
+  ], ans:1},
+ {id:"s6", who:"Head of PMO", q:"Can everyone just see the Focus Areas, or do all 900 of our Jira users need a license?",
+  opts:[
+   {t:"Everyone who creates or edits Focus Areas needs a paid Strategy Collection license. Your other Jira Premium users can use the free Viewer role to see how their work rolls up.", n:"Right. The Viewer role launched April 2025, is non-billable, and requires Jira Premium or above. The 50-license minimum still applies."},
+   {t:"Viewers are free, so you could run the whole org on a handful of paid seats.", n:"Viewer is not a backdoor license. Anyone participating in planning needs a paid seat, and there's a 50-license minimum."},
+   {t:"Every Jira user will need a Strategy Collection license.", n:"Wrong, and expensive-sounding. The Viewer role exists precisely for this."}
+  ], ans:0},
+ {id:"s7", who:"CEO", q:"How is Talent different from what HR already has in Workday?",
+  opts:[
+   {t:"Talent replaces Workday for workforce planning.", n:"Wrong. Workday stays the source of truth; cleanup happens in the HRIS, not in Talent."},
+   {t:"Workday holds the positions. Talent pulls them in, refreshed every six hours, and maps them to your strategic priorities so you can see headcount against Focus Areas. An HRIS doesn't do that.", n:"Accurate on the integration and clear on the job Talent does that Workday doesn't. For other HRIS systems the same answer holds through an API or webhook integration."},
+   {t:"Talent connects to any HRIS you're running.", n:"At GA, Workday is the only built-in connector; other HRIS systems need an API or webhook integration. Don't promise plug-and-play for anything but Workday."}
+  ], ans:1},
+ {id:"s8", who:"CPO", q:"Fine, I'm interested. What would it cost us?",
+  opts:[
+   {t:"Before we get to numbers, help me size the problem: how many hours does your team spend each quarter assembling the strategy-to-product view?", n:"Anchor on quantified pain first. Then bring in the partner manager before any pricing goes to the customer."},
+   {t:"List is $129 per user per month, and JPD Premium is on top. I can send a quote tonight.", n:"Don't discuss pricing structures or terms before aligning with your partner manager."},
+   {t:"It depends on which Focus features you want to turn on.", n:"There's no feature gating. Focus and Talent come with full access at the mid-market price point."}
+  ], ans:0}
+];
+
+// Which question opens the conversation?
+const PERSONA = [
+ {id:"p1", who:"You're walking into a 30-minute call with a CPO. One opening question.",
+  opts:["When leadership asks whether product is funding company priorities, how long does it take to answer?","When strategy shifts, how long does it take for your product roadmap to reflect that change?","How do you currently prove that your product investment is tracking against company strategy?","How many hours does your team spend pulling data for the executive status update each quarter?"],
+  ans:0, listen:"Listen for the manual data pull, stale decks, and no live view of the strategy-to-product connection. That's alignment and executive reporting.",
+  why:"The Org Leader is accountable for product velocity and strategic alignment at once. Open on the accountability gap, not on features."},
+ {id:"p2", who:"Your meeting is with the Head of Operations who runs quarterly planning.",
+  opts:["How do you currently prove that your product investment is tracking against company strategy?","When strategy shifts, how long does it take for your product roadmap to reflect that change?","How many Jira seats do you have today?","Have you heard of Focus Areas?"],
+  ans:1, listen:"Listen for planning cycles out of sync, and a roadmap that stays locked while strategy moves. That's prioritization and continuous planning.",
+  why:"The Ops Leader feels prioritization pain every cycle and is usually the economic buyer on the strategy track."},
+ {id:"p3", who:"The CFO joined the call. What do you ask her?",
+  opts:["Would you like to see a demo of Focus?","When strategy shifts, how long does it take for your product roadmap to reflect that change?","How do you currently prove that your product investment is tracking against company strategy?","Are you happy with your current OKR tool?"],
+  ans:2, listen:"Listen for ROI proof required, and output reported but not outcome. That's Product ROI, the highest-value conversation in the play.",
+  why:"Finance in the buying committee is the final approver. Open on investment traceability."},
+ {id:"p4", who:"You have fifteen minutes with the Chief of Staff who owns the exec update.",
+  opts:["When leadership asks for the full status of what you're delivering, how long does it take to answer? Is it even possible to know?","Who signs the contract for new tooling?","Is your team on Jira Cloud?","Would you consider Jira Align?"],
+  ans:0, listen:"Listen for the pause. Then the data chase: days pulling from Jira, JPD and spreadsheets, and a picture that is stale before the meeting starts. If the honest answer is 'we never really know,' you have found the pain. That's executive reporting, and this person is usually your champion.",
+  why:"The Program Lead owns the pain day to day and wants it gone. Asking whether a full status is even possible exposes the gap; following up with how many hours the deck takes gives you your Metrics number."},
+ {id:"p5", who:"Discovery is going well but nothing is quantified yet. Which question gives you a Metrics number?",
+  opts:["What percentage of your product roadmap can you directly tie to a company OKR today?","Does the team like JPD so far?","Would it help to see the Focus roadmap?","Who else uses Atlassian in your org?"],
+  ans:0, listen:"A low percentage, or 'we're not sure', is the alignment gap in numbers. If they can't quantify the pain, the deal won't survive procurement.",
+  why:"Qualification starts with Metrics. If the pain isn't quantified, the deal won't survive procurement."},
+ {id:"p6", who:"Your contact loves the idea. How do you test whether they're a real champion?",
+  opts:["Can you forward our deck to your leadership team?","Would you be willing to bring the budget owner into our next conversation?","Do you think the price is fair?","Can you sign the order form?"],
+  ans:1, listen:"Yes means you have a champion. No means they're either not the champion or not convinced yet.",
+  why:"A champion who won't make the introduction isn't a champion yet. Then ask what they need from you to make the internal case."}
+];
+
+// Terms and numbers worth knowing cold.
+const TERM = [
+ {id:"t1", q:"Focus Area", a:"A strategic priority leadership has committed to for a planning horizon, with OKRs and CAPEX/OPEX treatment attached. Leaders define Focus Areas in Focus; JPD ideas, Jira delivery and Talent positions connect to them."},
+ {id:"t2", q:"The two JPD connections", a:"Up to strategy: a JPD idea connects to a Goal, and the Goal rolls up to a Focus Area. Down to delivery: the idea links to a Jira work item, usually an Epic, so you can see delivery building what discovery decided. Together they make the strategy-to-execution chain visible from the C-suite down to the product team."},
+ {id:"t4", q:"What's in Strategy Collection", a:"Focus (strategy planning), Talent (workforce planning), Align (enterprise work planning). One SKU at $129 per user per month list. Lead with Focus and Talent."},
+ {id:"t5", q:"\"Not a bundle\"", a:"Strategy Collection and JPD Premium are separately licensed. Position them together because they solve one connected problem, but never describe them as a single SKU or packaged offer."},
+ {id:"t6", q:"The Viewer role", a:"A non-billable Focus role, live since April 2025, for Jira Premium+ users who only need to see how their work rolls up. Not a backdoor license: planners need paid seats and the 50-license minimum still applies."},
+ {id:"t7", q:"Deal-splitting", a:"The product team buys JPD while the strategy team buys Focus, separately. The most common deal-killer in this play. Fix it by using executive reporting to get both tracks into one conversation."},
+ {id:"t11", q:"What does it mean that Talent has just reached GA?", a:"GA means generally available: Talent is out of early access and is a fully supported product any customer can buy as part of Strategy Collection. It also means version one. Workday is the only built-in HRIS connector, refreshed every six hours; other systems connect through API or webhook, and customers should clean up data in the HRIS, not in Talent. Sell what is there today and point to the roadmap for the rest."},
+ {id:"t13", q:"The green-light sentence", a:"\"We looked at Jira Align but it felt like too much.\" Treat it as qualification. Run alignment, prioritization and continuous planning."},
+ {id:"t14", q:"Seat sizing heuristic", a:"Paid Strategy Collection licenses often land at 20 to 40% of Jira or Confluence licenses, depending on planning maturity and how many people actually plan versus just view. Discovery starter, not a rule."},
+ {id:"t15", q:"Three numbers for the exec conversation", a:"93% of Fortune 100 executives lack confidence their teams' work supports the biggest company goals. McKinsey found 20 to 30% of critical roles aren't filled by the most appropriate people. Fortune 500 executives estimate only 24% of teams are doing mission-critical work."},
+ {id:"t16", q:"The one thing to remember", a:"The whole enterprise context now lives in one system, from strategy to product to delivery, natively, without integration work. Atlassian is the only platform where that is true; every competitor needs middleware or a manual hand-off to connect the layers."}
+];
+
+/* ---------- Storage ---------- */
+const KEY="sc-practice-v1";
+function load(){ try{ const r=localStorage.getItem(KEY); return r?JSON.parse(r):{streak:0,last:null,items:{},days:0}; }catch(e){ return {streak:0,last:null,items:{},days:0}; } }
+function save(s){ try{ localStorage.setItem(KEY,JSON.stringify(s)); }catch(e){} }
+let S=load();
+const todayKey=()=>new Date().toISOString().slice(0,10);
+function markDay(){
+  const t=todayKey(); if(S.last===t) return;
+  const y=new Date(); y.setDate(y.getDate()-1);
+  S.streak = (S.last===y.toISOString().slice(0,10)) ? S.streak+1 : 1;
+  S.last=t; S.days=(S.days||0)+1; save(S);
+}
+function record(id,ok){ const it=S.items[id]||{r:0,w:0}; ok?it.r++:it.w++; it.review=!ok; S.items[id]=it; save(S); }
+
+/* ---------- Set builder ---------- */
+function seeded(str){ let h=2166136261; for(const c of str){ h^=c.charCodeAt(0); h=Math.imul(h,16777619);} return ()=>{ h+=0x6D2B79F5; let t=Math.imul(h^h>>>15,1|h); t^=t+Math.imul(t^t>>>7,61|t); return ((t^t>>>14)>>>0)/4294967296; }; }
+function pick(pool,n,rnd,kind){
+  const score=x=>{ const it=S.items[x.id]; if(!it) return 1; if(it.review) return 0; return 2+it.r; };
+  const arr=pool.map(x=>({x,k:rnd()})).sort((a,b)=>a.k-b.k).map(o=>o.x).sort((a,b)=>score(a)-score(b));
+  return arr.slice(0,n).map(x=>({kind,...x}));
+}
+function buildSet(seed){
+  const rnd=seeded(seed);
+  const set=[...pick(ROUTE,2,rnd,"route"),...pick(RESPOND,1,rnd,"respond"),...pick(PERSONA,1,rnd,"persona"),...pick(TERM,1,rnd,"term")];
+  return set.map(x=>({x,k:rnd()})).sort((a,b)=>a.k-b.k).map(o=>o.x);
+}
+
+/* ---------- Rendering ---------- */
+const view=document.getElementById("view");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function streakText(){ document.getElementById("streak").innerHTML = S.streak>0 ? `<b>${S.streak}</b> day streak` : `Five quick drills a day`; }
+
+let session=null;
+function startSession(seed){ session={set:buildSet(seed),i:0,right:0}; renderDrill(); }
+
+function dots(){ return `<div class="topbar"><button class="back" id="backBtn" ${session.i===0?'disabled':''}>&larr; Back</button><span class="count">${session.i+1} of ${session.set.length}</span></div><div class="dots" aria-label="Progress">${session.set.map((_,i)=>`<span class="${i<session.i?'done':i===session.i?'on':''}"></span>`).join("")}</div>`; }
+function bindBack(){ const b=document.getElementById("backBtn"); if(b) b.onclick=()=>{ if(session.i>0){ session.i--; renderDrill(); } }; }
+
+function renderDrill(){
+  if(session.i>=session.set.length) return renderFinish();
+  const d=session.set[session.i];
+  let html=dots();
+  if(d.kind==="route"){
+    html+=`<p class="kind">Hear this, route it</p>
+      <div class="cue"><p class="who">${esc(d.who)}</p><p class="q">${esc(d.q)}</p></div>
+      <p class="ask">Which play does this open?</p>
+      <div class="opts" id="opts">${d.opts.map(o=>`<button class="opt" data-v="${o}">${esc(UC[o])}</button>`).join("")}</div>
+      <div id="after"></div>`;
+  } else if(d.kind==="respond"){
+    html+=`<p class="kind">Pick the reply you'd give</p>
+      <div class="cue"><p class="who">${esc(d.who)}</p><p class="q">${esc(d.q)}</p></div>
+      <div class="opts" id="opts">${d.opts.map((o,i)=>`<button class="opt" data-v="${i}">${esc(o.t)}<span class="note" hidden>${esc(o.n)}</span></button>`).join("")}</div>
+      <div id="after"></div>`;
+  } else if(d.kind==="persona"){
+    html+=`<p class="kind">Open the conversation</p>
+      <div class="cue term"><p class="q" style="font-size:clamp(20px,3vw,24px);font-weight:600">${esc(d.who)}</p></div>
+      <div class="opts" id="opts">${d.opts.map((o,i)=>`<button class="opt" data-v="${i}">${esc(o)}</button>`).join("")}</div>
+      <div id="after"></div>`;
+  } else {
+    html+=`<p class="kind">Know it cold</p>
+      <div class="cue term"><p class="who">What does this mean, and why does it matter in a deal?</p><p class="q">${esc(d.q)}</p></div>
+      <div id="after"><button class="btn" id="flip">Show the answer</button></div>`;
+  }
+  view.innerHTML=html; window.scrollTo({top:0}); bindBack();
+  if(d.kind==="term"){ document.getElementById("flip").onclick=()=>{
+      document.getElementById("after").innerHTML=`<div class="reveal"><p>${esc(d.a)}</p></div>
+        <div class="row"><button class="btn" id="got">Got it</button><button class="btn alt" id="again">Show me again soon</button></div>`;
+      document.getElementById("got").onclick=()=>{record(d.id,true);session.right++;next();};
+      document.getElementById("again").onclick=()=>{record(d.id,false);next();};
+    }; return; }
+  document.querySelectorAll("#opts .opt").forEach(b=>b.onclick=()=>answer(d,b));
+}
+
+function answer(d,btn){
+  const v=btn.dataset.v;
+  const ok = d.kind==="route" ? String(v)===String(d.ans) : Number(v)===d.ans;
+  record(d.id,ok); if(ok) session.right++;
+  document.querySelectorAll("#opts .opt").forEach(b=>{
+    b.disabled=true;
+    const isAns = d.kind==="route" ? String(b.dataset.v)===String(d.ans) : Number(b.dataset.v)===d.ans;
+    if(isAns) b.classList.add("right"); else if(b===btn) b.classList.add("wrong"); else b.classList.add("dim");
+    const n=b.querySelector(".note"); if(n && (isAns||b===btn)) n.hidden=false;
+  });
+  let rev="";
+  if(d.kind==="route"){
+    rev=`<div class="reveal"><span class="play">${esc(d.lead)}</span><h3>Say this</h3><p class="say">${esc(d.say)}</p><h3>Why it works</h3><p>${esc(d.why)}</p></div>`;
+  } else if(d.kind==="persona"){
+    rev=`<div class="reveal"><h3>What you're listening for</h3><p>${esc(d.listen)}</p><h3>Why this question</h3><p>${esc(d.why)}</p></div>`;
+  }
+  document.getElementById("after").innerHTML=`<p class="verdict ${ok?'good':'bad'}">${ok?'That\u2019s the one.':'Not this time. Read the notes, then move on.'}</p>${rev}<button class="btn" id="next">${session.i===session.set.length-1?'Finish':'Next'}</button>`;
+  document.getElementById("next").onclick=next;
+  document.getElementById("after").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function next(){ session.i++; renderDrill(); }
+
+function renderFinish(){
+  markDay(); streakText();
+  const misses=session.set.filter(x=>S.items[x.id]&&S.items[x.id].review);
+  view.innerHTML=`<div class="finish">
+    <h2>${session.right} of ${session.set.length} today</h2>
+    <p>${S.streak>1?`That's ${S.streak} days in a row.`:`Come back tomorrow for five more.`}</p>
+    ${misses.length?`<p class="small">Flagged for a repeat soon:</p><ul>${misses.map(m=>`<li>${esc(m.kind==="term"?m.q:m.kind==="persona"?m.who:m.q.slice(0,80)+(m.q.length>80?'\u2026':''))}</li>`).join("")}</ul>`:""}
+    <div class="row"><button class="btn orange" id="more">Practice five more</button><button class="btn alt" id="sheetBtn">Open the cheat sheet</button><button class="btn alt" id="reviewBtn">&larr; Back to the drills</button></div>
+  </div>`;
+  document.getElementById("more").onclick=()=>startSession("extra-"+Date.now());
+  document.getElementById("sheetBtn").onclick=()=>showTab("sheet");
+  document.getElementById("reviewBtn").onclick=()=>{ session.i=session.set.length-1; renderDrill(); };
+}
+
+function renderToday(){
+  if(!session) startSession(todayKey()); else renderDrill();
+}
+
+/* ---------- Browse ---------- */
+let filter="all";
+function renderBrowse(){
+  const cats=[["all","Everything"],[1,"Alignment"],[2,"Prioritization"],[3,"Exec reporting"],[4,"Continuous planning"],[5,"Product ROI"],["T","Talent"],["terms","Terms"]];
+  const routes=ROUTE.filter(r=>filter==="all"||String(r.ans)===String(filter));
+  const terms=(filter==="all"||filter==="terms")?TERM:[];
+  const resp=(filter==="all")?RESPOND:[];
+  view.innerHTML=`<div class="browse"><h2>Every scenario</h2><p class="lead">Scan by play when you're prepping for a specific call.</p>
+    <div class="filters">${cats.map(([k,l])=>`<button class="chip" data-f="${k}" aria-pressed="${String(k)===String(filter)}">${l}</button>`).join("")}</div>
+    ${routes.map(r=>`<details class="item"><summary>${esc(r.q)}</summary><div class="body"><p class="small">${esc(r.who)} &middot; ${esc(UC[r.ans])} &middot; ${esc(r.lead)}</p><p class="say">${esc(r.say)}</p><p>${esc(r.why)}</p></div></details>`).join("")}
+    ${resp.map(r=>`<details class="item"><summary>${esc(r.q)}</summary><div class="body"><p class="small">${esc(r.who)} asks</p><p class="say">${esc(r.opts[r.ans].t)}</p><p>${esc(r.opts[r.ans].n)}</p></div></details>`).join("")}
+    ${terms.map(t=>`<details class="item"><summary>${esc(t.q)}</summary><div class="body"><p>${esc(t.a)}</p></div></details>`).join("")}
+  </div>`;
+  document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{filter=c.dataset.f; renderBrowse();});
+  window.scrollTo({top:0});
+}
+
+/* ---------- Cheat sheet ---------- */
+function renderSheet(){
+  view.innerHTML=`<div class="sheet">
+    <h2>One screen before the call</h2>
+    <p class="lead">Lead with the pain, not the product names. Get both buying tracks in the room. Quantify before you price.</p>
+
+    <div class="block"><h3>The 30-second pitch</h3>
+      <p class="pitch">You're accountable for hundreds of people and tens of millions in product investment, but the system that tells you whether that investment is funding company strategy doesn't exist. You assemble it by hand every quarter. Atlassian closes that gap natively: JPD gives your product teams structured discovery and prioritization, Focus gives leadership the live portfolio view, and Talent shows who's on what. When a JPD idea becomes a Jira Epic it connects to a Focus Area automatically. No middleware, no new platform, no deck.</p></div>
+
+    <div class="block"><h3>Hear it, lead with it, then connect</h3><div class="uc">
+      <div><p class="h">"We're building fast but missing our OKRs."</p><p class="l"><b>JPD</b> then Focus. Alignment.</p></div>
+      <div><p class="h">"Leadership can't see whether product is working on the right things."</p><p class="l"><b>Focus</b> then JPD. Alignment.</p></div>
+      <div><p class="h">"Prioritization is political. Every team thinks they're the priority."</p><p class="l"><b>JPD + Focus</b> then Talent. Prioritization.</p></div>
+      <div><p class="h">"We spend days building the exec status deck."</p><p class="l"><b>Focus</b> then JPD. Executive reporting, the play that unifies the deal.</p></div>
+      <div><p class="h">"When strategy changes, the roadmap doesn't react for months."</p><p class="l"><b>Focus</b> then JPD. Continuous planning.</p></div>
+      <div><p class="h">"Our CFO wants to know what we got for the investment."</p><p class="l"><b>Focus</b> then JPD + Talent. Product ROI; Funds is aspirational until GA.</p></div>
+      <div><p class="h">"We looked at Jira Align but it felt like too much."</p><p class="l"><b>Green light.</b> Run alignment, prioritization and continuous planning.</p></div>
+    </div></div>
+
+    <div class="block"><h3>One opening question per persona</h3><ul>
+      <li><b>CPO / CTO.</b> When leadership asks whether product is funding company priorities, how long does it take to answer?</li>
+      <li><b>Head of Ops / PMO / Strategy.</b> When strategy shifts, how long does it take for your product roadmap to reflect that change?</li>
+      <li><b>CFO / COO.</b> How do you currently prove that your product investment is tracking against company strategy?</li>
+      <li><b>Chief of Staff / Program Lead.</b> How many hours does your team spend pulling data for the executive update each quarter?</li>
+    </ul></div>
+
+    <div class="block"><div class="two">
+      <div class="do"><h4>Do</h4><ul><li>Open on the accountability gap</li><li>Get product and strategy buyers in one conversation early</li><li>Use executive reporting as the bridge</li><li>Quantify hours on reporting before anything else</li><li>Call the partner manager before pricing or quoting</li></ul></div>
+      <div class="dont"><h4>Don't</h4><ul><li>Lead with Jira Align</li><li>Call Focus and JPD a bundle</li><li>Run this on customers who already own Focus, Talent or Align</li><li>Pitch scoring matrices and roll-up features to an executive</li><li>Leave a call without a dated next step</li></ul></div>
+    </div></div>
+
+    <div class="block"><h3>Numbers to have ready</h3><ul>
+      <li>Strategy Collection list: $129 per user per month, full features. JPD Premium priced separately.</li>
+      <li>Fit: Jira Cloud, 500+ seats, $100K to $1M+ spend, net-new. Typical start about 80 seats, roughly 10% of Jira seats. 50-license minimum.</li>
+      <li>Viewer role is free for Jira Premium+ users who only need to see how work rolls up.</li>
+      <li>Talent has a built-in Workday connector at GA, refreshed every six hours; other HRIS systems connect through API or webhook.</li>
+      <li>93% of Fortune 100 executives aren't confident their teams' work supports top goals. Only 24% of teams are estimated to be doing mission-critical work.</li>
+    </ul></div>
+  </div>`;
+  window.scrollTo({top:0});
+}
+
+/* ---------- Tabs ---------- */
+function showTab(name){
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===name)));
+  if(name==="today") renderToday(); else if(name==="browse") renderBrowse(); else renderSheet();
+}
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+streakText(); showTab("today");
+</script>
+</body>
+</html>
